@@ -46,6 +46,32 @@ A desktop-based task scheduling and performance testing application built with J
 
 > ⚠️ Make sure `users.txt` is in the root directory for proper loading/saving of users.
 
+## 🛠️ Known Issues & Fixes Needed
+
+**User Management**
+Add User function not working
+- The menu option exists but doesn't currently create new users. Needs connection to registration system.
+
+**Missing logout option**
+No way to return to login screen without exiting. Should add:
+- "Logout" menu item
+- Session timeout functionality
+- Proper user switching flow
+
+**Performance Testing**
+Performance test fails
+- The "Run Performance Test" option crashes when attempting to load test users. Requires:
+- Better error handling
+- Validation for user data files
+- Progress feedback during testing
+
+**Data Issues**
+Inconsistent saving
+Some users report tasks not persisting between sessions. Need to:
+- Verify serialization is working
+- Add save confirmation messages
+- Implement backup system
+
 ## 🔄 Planned Improvements
 
 - ⚙️ Core Functionality
