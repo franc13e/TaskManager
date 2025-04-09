@@ -14,8 +14,12 @@ import javax.swing.JOptionPane;
 import javax.swing.ImageIcon;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class TaskManager {
+    private static final String DATA_FILE = "taskmanager_data.ser";
     private LinkedList<User> users = new LinkedList<>();
     private Queue<String> userOperations = new LinkedList<>(); // Queue for logging operations
     private User currentUser;
@@ -103,42 +107,189 @@ public class TaskManager {
         editTaskButton.addActionListener(e -> editTask());
 
         // Menu item actions
-        addUserItem.addActionListener(e -> addUser());
+//        addUserItem.addActionListener(e -> addUser());
         switchUserItem.addActionListener(e -> switchUser());
         viewLogsItem.addActionListener(e -> viewOperationsLog());
         performanceTestItem.addActionListener(e -> runPerformanceTest());
 
+        // Then load data and show login
+    loadData();
+    // Add default admin user if no users exist
+        if (users.isEmpty()) {
+            users.add(new User("francine", "1234"));
+        }
+        
+        // Show login dialog
+        if (!showLoginDialog()) {
+            System.exit(0);
+        }
+        
         frame.setVisible(true);
     }
+
     
-    
-    //ADD USER
-    private void addUser() {
-        String username = JOptionPane.showInputDialog(frame, "Enter Username:");
-        if (username != null && !username.trim().isEmpty()) {
-            User newUser = new User(username);
-            users.add(newUser);
-            currentUser = newUser;
-            updateTaskList();
-            updateCurrentUserLabel();
-            JOptionPane.showMessageDialog(frame, "User added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+     private boolean showLoginDialog() {
+        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+        JTextField usernameField = new JTextField();
+        JPasswordField passwordField = new JPasswordField();
+        JButton registerButton = new JButton("Register");
+        
+        panel.add(new JLabel("Username:"));
+        panel.add(usernameField);
+        panel.add(new JLabel("Password:"));
+        panel.add(passwordField);
+        panel.add(new JLabel(""));
+        panel.add(registerButton);
+
+        registerButton.addActionListener(e -> {
+            registerNewUser();
+            ((Window)SwingUtilities.getWindowAncestor(panel)).dispose();
+            showLoginDialog();
+        });
+
+        while (true) {
+            int option = JOptionPane.showConfirmDialog(frame, panel, "Login", 
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            
+            if (option != JOptionPane.OK_OPTION) {
+                return false;
+            }
+            
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Please enter both username and password", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                continue;
+            }
+            
+            for (User user : users) {
+                if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                    currentUser = user;
+                    updateTaskList();
+                    updateCurrentUserLabel();
+                    return true;
+                }
+            }
+            
+            JOptionPane.showMessageDialog(frame, "Invalid username or password", 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-    // SWITCH USER
+
+    private void registerNewUser() {
+        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+        JTextField usernameField = new JTextField();
+        JPasswordField passwordField = new JPasswordField();
+        JPasswordField confirmField = new JPasswordField();
+        
+        panel.add(new JLabel("Username:"));
+        panel.add(usernameField);
+        panel.add(new JLabel("Password:"));
+        panel.add(passwordField);
+        panel.add(new JLabel("Confirm Password:"));
+        panel.add(confirmField);
+
+        int option = JOptionPane.showConfirmDialog(frame, panel, "Register New User", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
+        if (option == JOptionPane.OK_OPTION) {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            String confirm = new String(confirmField.getPassword());
+            
+            if (!password.equals(confirm)) {
+                JOptionPane.showMessageDialog(frame, "Passwords don't match", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Username and password cannot be empty", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (users.stream().anyMatch(u -> u.getUsername().equals(username))) {
+                JOptionPane.showMessageDialog(frame, "Username already exists", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            User newUser = new User(username, password);
+            users.add(newUser);
+            saveData();
+            JOptionPane.showMessageDialog(frame, "Registration successful!", 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void saveData() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(
+                new FileOutputStream(DATA_FILE))) {
+            oos.writeObject(users);
+            oos.writeObject(currentUser);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "Error saving data: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadData() {
+        if (!Files.exists(Paths.get(DATA_FILE))) return;
+        
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new FileInputStream(DATA_FILE))) {
+            users = (LinkedList<User>) ois.readObject();
+            currentUser = (User) ois.readObject();
+            updateTaskList();
+            updateCurrentUserLabel();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "Error loading data: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Add this to save data when closing the application
+    public void onExit() {
+        saveData();
+        frame.dispose();
+    }
+
+    // Updated switchUser method
     private void switchUser() {
         if (users.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "No users available.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "No users available.", 
+                "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        String[] userNames = users.stream().map(User::getUsername).toArray(String[]::new);
-        String selectedUser = (String) JOptionPane.showInputDialog(frame, "Select User:", "Switch User", JOptionPane.PLAIN_MESSAGE, null, userNames, userNames[0]);
+        
+        String[] userNames = users.stream()
+                               .map(User::getUsername)
+                               .toArray(String[]::new);
+                               
+        String selectedUser = (String) JOptionPane.showInputDialog(
+            frame, 
+            "Select User:", 
+            "Switch User", 
+            JOptionPane.PLAIN_MESSAGE, 
+            null, 
+            userNames, 
+            userNames[0]);
+            
         if (selectedUser != null) {
-            currentUser = users.stream().filter(user -> user.getUsername().equals(selectedUser)).findFirst().orElse(null);
+            currentUser = users.stream()
+                           .filter(user -> user.getUsername().equals(selectedUser))
+                           .findFirst()
+                           .orElse(null);
             updateTaskList();
             updateCurrentUserLabel();
+            saveData();  // Save after switching user
         }
     }
+    
 
     // ADD TASKS
     // Shows dialog to create a new task
@@ -437,7 +588,15 @@ public class TaskManager {
         }
     }
 
-    public static void main(String[] args) {
-        new TaskManager();
-    }
+public static void main(String[] args) {
+    TaskManager taskManager = new TaskManager();
+    taskManager.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    taskManager.frame.addWindowListener(new java.awt.event.WindowAdapter() {
+        @Override
+        public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            taskManager.onExit();
+            System.exit(0);
+        }
+    });
+}
 }

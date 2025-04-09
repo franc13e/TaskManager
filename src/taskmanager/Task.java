@@ -1,7 +1,10 @@
 package taskmanager;
 
+import java.io.Serializable;
+
 // Data model representing a user task
-public class Task {
+public class Task implements Serializable {
+    private static final long serialVersionUID = 1L;
     // Instance fields
     private String taskName;       
     private String priorityLevel;  
