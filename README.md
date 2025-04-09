@@ -2,11 +2,20 @@
 
 A desktop-based task scheduling and performance testing application built with Java Swing. This project was developed as part of my coursework, applying data structures like Linked Lists and Queues in a practical GUI setting.
 
-## 📌 Features
+## 📌 Curren Features
 
-- 👤 **User Management**  
-  - Add or delete users dynamically
-  - Store user data in `users.txt`
+- 👤 **User System**  
+  - Basic username/password authentication
+  - Default account: francine/1234
+  - Simple user switching functionality
+  - User data stored in memory (not persistent)
+ 
+- 📝 **Task Management**  
+  - Add, edit, and delete tasks
+  - Mark tasks as complete/incomplete
+  - Basic priority system (High/Medium/Low)
+  - Tasks sorted by due date
+  
 
 - ⏱️ **Performance Testing**  
   - Simulate performance with predefined options (e.g., Add 100 users, Delete 150 users)
@@ -15,6 +24,7 @@ A desktop-based task scheduling and performance testing application built with J
 - 🧠 **Data Structures Used**
   - `LinkedList` for managing users
   - `Queue` for managing system logs
+  - Basic logging functionality
 
 - 🖥️ **Java Swing GUI**
   - User-friendly interface with tabs for different functions
@@ -36,12 +46,21 @@ A desktop-based task scheduling and performance testing application built with J
 
 > ⚠️ Make sure `users.txt` is in the root directory for proper loading/saving of users.
 
-## 💡 Future Improvements
+## 🔄 Planned Improvements
 
-- Save tasks along with users
-- Add login authentication
-- Export performance logs to CSV
-- UI redesign for modern look
+- ⚙️ Core Functionality
+  - Persistent data storage
+  - Proper user registration
+  - Task persistence between sessions
+
+- 📊 Enhanced Features
+  - Performance logging to CSV
+  - Modern UI redesign
+  - Advanced priority system
+
+- 🔒 Security
+  - Password hashing
+  - Session management
 
 ## 👩‍💻 Author
 
