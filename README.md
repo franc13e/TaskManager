@@ -2,7 +2,7 @@
 
 A desktop-based task scheduling and performance testing application built with Java Swing. This project was developed as part of my coursework, applying data structures like Linked Lists and Queues in a practical GUI setting.
 
-## 📌 Curren Features
+## 📌 Current Features
 
 - 👤 **User System**  
   - Basic username/password authentication
